@@ -1,0 +1,1 @@
+SELECT * FROM [dbo].[Programación_Materia_Prima]
