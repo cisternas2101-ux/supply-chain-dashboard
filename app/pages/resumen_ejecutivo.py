@@ -64,6 +64,13 @@ df_semana = load_query(
 df_otif = load_query(
     "sql/otif.sql"
 )
+# Convertir columnas numéricas
+df_scorecard["OTIF_Pct"] = pd.to_numeric(df_scorecard["OTIF_Pct"], errors="coerce")
+df_scorecard["FillRate_Pct"] = pd.to_numeric(df_scorecard["FillRate_Pct"], errors="coerce")
+df_scorecard["LeadTime_Prom_Dias"] = pd.to_numeric(df_scorecard["LeadTime_Prom_Dias"], errors="coerce")
+df_semana["Pendientes"] = pd.to_numeric(df_semana["Pendientes"], errors="coerce")
+df_otif["OTIF_Pct"] = pd.to_numeric(df_otif["OTIF_Pct"], errors="coerce")
+
 
 with st.sidebar:
     st.title("Filtros")
