@@ -124,6 +124,14 @@ total_oc = df_scorecard[
     "Total_OC"
 ].sum()
 
+df_otif["OTIF_Pct"] = pd.to_numeric(df_otif["OTIF_Pct"], errors="coerce")
+df_fill["Fill_Rate_Pct"] = pd.to_numeric(df_fill["Fill_Rate_Pct"], errors="coerce")
+df_lead["LeadTime_Promedio"] = pd.to_numeric(df_lead["LeadTime_Promedio"], errors="coerce")
+df_scorecard["Total_OC"] = pd.to_numeric(df_scorecard["Total_OC"], errors="coerce")
+df_scorecard["FillRate_Pct"] = pd.to_numeric(df_scorecard["FillRate_Pct"], errors="coerce") # ← agregar
+
+
+
 # =========================
 # KPIs VISUALES
 # =========================
