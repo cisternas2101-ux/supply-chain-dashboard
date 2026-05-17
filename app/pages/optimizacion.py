@@ -33,6 +33,7 @@ st.write("Modelo de optimización de asignación a proveedores")
 # =========================
 # CARGAR DATOS
 # =========================
+
 df_scorecard = load_query("sql/scorecard_proveedores.sql")
 
 # Convertir columnas numéricas
@@ -44,6 +45,8 @@ def convertir_numericos(df):
     return df
 
 df_scorecard = convertir_numericos(df_scorecard)
+
+
 
 # =========================
 # MOSTRAR DATOS
@@ -59,13 +62,18 @@ if _SOLVER is None:
 
 elif st.button("🚀 Ejecutar Optimización"):
 
-    df_scorecard["Score"] = (
-        df_scorecard["OTIF_Pct"] * 0.4 +
-        df_scorecard["FillRate_Pct"] * 0.3 -
-        df_scorecard["LeadTime_Prom_Dias"] * 0.3
+    # Eliminar filas con NaN en columnas clave
+    df_opt = df_scorecard.dropna(
+        subset=["OTIF_Pct", "FillRate_Pct", "LeadTime_Prom_Dias", "Proveedor"]
     )
 
-    scores = df_scorecard.set_index("Proveedor")["Score"].to_dict()
+    df_opt["Score"] = (
+        df_opt["OTIF_Pct"] * 0.4 +
+        df_opt["FillRate_Pct"] * 0.3 -
+        df_opt["LeadTime_Prom_Dias"] * 0.3
+    )
+
+    scores = df_opt.set_index("Proveedor")["Score"].to_dict()
     proveedores = list(scores.keys())
 
     if _SOLVER == "gurobi":
