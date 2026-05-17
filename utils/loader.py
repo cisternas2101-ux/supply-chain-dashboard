@@ -1,7 +1,9 @@
 import pandas as pd
 import os
+import streamlit as st
 from utils.connection import get_connection
 
+@st.cache_data
 def load_query(path):
     
     # Detecta si está en Streamlit Cloud
