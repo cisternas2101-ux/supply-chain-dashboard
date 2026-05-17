@@ -10,6 +10,7 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')
 
 # 1. IMPORTS
 import streamlit as st
+import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
 
@@ -69,6 +70,11 @@ df_leadtime = load_query(
 df_fillrate = load_query(
     "sql/fill_rate.sql"
 )
+# Convertir todas las columnas numéricas automáticamente
+df_otif = df_otif.apply(pd.to_numeric, errors="ignore")
+df_scorecard = df_scorecard.apply(pd.to_numeric, errors="ignore")
+df_leadtime = df_leadtime.apply(pd.to_numeric, errors="ignore")
+df_fillrate = df_fillrate.apply(pd.to_numeric, errors="ignore")
 
 # ==============================
 # 5. FILTRO PROVEEDOR
