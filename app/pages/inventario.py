@@ -54,18 +54,6 @@ if proveedor != "TODOS":
 # FILTRO FECHAS
 # =========================
 
-fecha_inicio = st.date_input(
-    "Fecha Inicio"
-)
-
-fecha_fin = st.date_input(
-    "Fecha Fin"
-)
-
-# =========================
-# FILTRO FECHAS
-# =========================
-
 rango = st.date_input(
     "📅 Rango Fechas",
     []
@@ -90,31 +78,9 @@ else:
 # KPI GENERALES
 # =========================
 total_pedidos = len(df_filtrado)
-
-kg_solicitados = df_filtrado[
-    "Cantidad_Solicitada"
-].sum()
-
-kg_recibidos = df_filtrado[
-    "Cantidad_llegada"
-].sum()
-
-
-total_pedidos = df_semana[
-    "Total_Pedidos"
-].sum()
-
-kg_solicitados = df_semana[
-    "Kg_Solicitados"
-].sum()
-
-kg_recibidos = df_semana[
-    "Kg_Recibidos"
-].sum()
-
-pendientes = df_semana[
-    "Pendientes"
-].sum()
+kg_solicitados = df_filtrado["Cantidad_Solicitada"].sum()
+kg_recibidos = df_filtrado["Cantidad_llegada"].sum()
+pendientes = df_semana["Pendientes"].sum()
 
 # =========================
 # KPIs

@@ -1,58 +1,25 @@
 import pandas as pd
-import streamlit as st
-
+import os
 from utils.connection import get_connection
 
-# =========================
-# MODO
-# =========================
-
-USE_CSV = True
-
-# =========================
-# LOAD QUERY
-# =========================
-
-@st.cache_data
-
 def load_query(path):
+    
+    # Detecta si está en Streamlit Cloud
+    en_nube = os.getenv("STREAMLIT_CLOUD") is not None
 
-    # ---------------------
-    # CSV MODE
-    # ---------------------
-
-    if USE_CSV:
-
-        csv_path = (
-
-            path
-
-            .replace("sql/", "data/")
-
-            .replace(".sql", ".csv")
-        )
-
-        return pd.read_csv(csv_path)
-
-    # ---------------------
-    # SQL MODE
-    # ---------------------
-
-    conn = get_connection()
-
-    with open(
-        path,
-        "r",
-        encoding="latin-1"
-    ) as file:
-
-        query = file.read()
-
-    df = pd.read_sql(
-        query,
-        conn
+    if en_nube:
+        nombre_archivo = os.path.splitext(os.path.basename(path))[0]
+        csv_path = os.path.join("data", f"{nombre_archivo}.csv")
+        return pd.read_csv(
+        csv_path,
+        sep=";",              # ← separador correcto
+        encoding="utf-8-sig"  # ← elimina el BOM automáticamente
     )
-
-    conn.close()
-
-    return df
+    
+    else:
+        # Comportamiento local original, no cambia nada
+        conn = get_connection()
+        with open(path, "r", encoding="latin-1") as file:
+            query = file.read()
+        df = pd.read_sql(query, conn)
+        return df

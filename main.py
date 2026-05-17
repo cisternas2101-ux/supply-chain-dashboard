@@ -10,7 +10,7 @@ df_leadtime = load_query("sql/leadtime.sql")
 
 df_fillrate = load_query("sql/fill_rate.sql")
 
-df_prom_retraso = load_query("sql/prom_retraso.sql")
+df_prom_retraso = load_query("sql/dia_prom_retraso.sql")
 
 df_area = load_query("sql/pendiente_por_area.sql")
 

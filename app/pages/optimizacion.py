@@ -1,9 +1,15 @@
 import streamlit as st
 import pandas as pd
 
-from gurobipy import Model, GRB
-
 from utils.loader import load_query
+
+try:
+    from gurobipy import Model, GRB  # type: ignore
+    _HAS_GUROBI = True
+except ImportError:
+    Model = None  # type: ignore
+    GRB = None  # type: ignore
+    _HAS_GUROBI = False
 
 # =========================
 # CONFIG
@@ -48,7 +54,10 @@ st.dataframe(
 # BOTÓN OPTIMIZAR
 # =========================
 
-if st.button("🚀 Ejecutar Optimización"):
+if not _HAS_GUROBI:
+    st.warning("Gurobi no disponible en este entorno (deploy CSV).")
+
+if _HAS_GUROBI and st.button("🚀 Ejecutar Optimización"):
 
     # =====================
     # PREPARAR DATOS

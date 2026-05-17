@@ -1,4 +1,10 @@
-﻿Proveedor;OC;Descripción;Fecha_Prometida;Fecha_real;Dias_Retraso
+﻿Total_Pedidos;A_Tiempo;Con_Retraso;Ontime_Pct
+97;74;23;76.290000000000
+
+
+
+
+Proveedor;OC;Descripción;Fecha_Prometida;Fecha_real;Dias_Retraso
 OXIQUIM;17881;ACIDO FUMARICO;2026-04-14;2026-04-27;13
 "GELYMAR ";16740;CARRALACT DSC 10160;2026-03-31;2026-04-09;9
 "GELYMAR ";17349;CARRALACT DSC 3592;2026-03-31;2026-04-09;9
