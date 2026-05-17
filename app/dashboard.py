@@ -188,16 +188,16 @@ fig_bar.update_layout(template="plotly_dark", hovermode="x unified")
 # Limpiar NaN antes del treemap
 df_tree = df_scorecard_filtrado.dropna(subset=["Proveedor", "Total_OC"])
 
-fig_tree = px.treemap(
-    df_tree,  # ← usar df_tree en vez de df_scorecard_filtrado
-    path=["Proveedor"],
-    values="Total_OC",
-    hover_data=["FillRate_Pct", "LeadTime_Prom_Dias"],
-)
+
+# Limpiar NaN antes del treemap
+df_tree = df_scorecard_filtrado.dropna(subset=["Proveedor", "Total_OC"])
 
 fig_tree = px.treemap(
-    df_scorecard_filtrado, path=["Proveedor"], values="Total_OC",
-    color="OTIF_Pct", color_continuous_scale="RdYlGn",
+    df_tree,                        # ← corregido
+    path=["Proveedor"],
+    values="Total_OC",
+    color="OTIF_Pct",
+    color_continuous_scale="RdYlGn",
     range_color=[50, 100],
     title="Volumen y desempeño por proveedor",
     hover_data=["FillRate_Pct", "LeadTime_Prom_Dias"],
