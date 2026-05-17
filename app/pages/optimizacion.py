@@ -1,224 +1,100 @@
 import sys, os
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../..')))
 
-# luego tus imports normales
-import plotly.express as px
+import streamlit as st
+import pandas as pd
 from utils.loader import load_query
 
 # =========================
-# Intenta Gurobi primero (local)
+# DETECTAR SOLVER
+# =========================
+_SOLVER = None
+
 try:
     from gurobipy import Model, GRB
     _SOLVER = "gurobi"
 except ImportError:
     pass
 
-# Si no hay Gurobi, usa PuLP (nube)
-try:
-    from pulp import LpMaximize, LpProblem, LpVariable, lpSum, value, LpStatus
-    _SOLVER = "pulp"
-except ImportError:
-    _SOLVER = None
-
-#====================
-
-import streamlit as st
-import pandas as pd
-
-from utils.loader import load_query
-
-try:
-    from gurobipy import Model, GRB  # type: ignore
-    _HAS_GUROBI = True
-except ImportError:
-    Model = None  # type: ignore
-    GRB = None  # type: ignore
-    _HAS_GUROBI = False
+if _SOLVER is None:
+    try:
+        from pulp import LpMaximize, LpProblem, LpVariable, lpSum, value, LpStatus
+        _SOLVER = "pulp"
+    except ImportError:
+        pass
 
 # =========================
 # CONFIG
 # =========================
-
-st.set_page_config(
-    page_title="Optimización",
-    layout="wide"
-)
-
-# =========================
-# TÍTULO
-# =========================
-
-st.title("📈 Optimización de Proveedores") 
-
-
-st.write(
-    "Modelo de optimización usando Gurobi"
-)
+st.set_page_config(page_title="Optimización", layout="wide")
+st.title("📈 Optimización de Proveedores")
+st.write("Modelo de optimización de asignación a proveedores")
 
 # =========================
 # CARGAR DATOS
 # =========================
+df_scorecard = load_query("sql/scorecard_proveedores.sql")
 
-df_scorecard = load_query(
-    "sql/scorecard_proveedores.sql"
-)
+# Convertir columnas numéricas
+def convertir_numericos(df):
+    for col in df.select_dtypes(exclude="number").columns:
+        converted = pd.to_numeric(df[col], errors="coerce")
+        if converted.notna().sum() / len(df) > 0.5:
+            df[col] = converted
+    return df
+
+df_scorecard = convertir_numericos(df_scorecard)
 
 # =========================
 # MOSTRAR DATOS
 # =========================
-
 st.subheader("📋 Scorecard")
-
-st.dataframe(
-    df_scorecard,
-    use_container_width=True
-)
+st.dataframe(df_scorecard, use_container_width=True)
 
 # =========================
 # BOTÓN OPTIMIZAR
 # =========================
-if st.button("🚀 Ejecutar Optimización"):
+if _SOLVER is None:
+    st.error("❌ No hay solver disponible")
 
-    if _SOLVER is None:
-        st.error("❌ No hay solver disponible")
-
-    elif _SOLVER == "gurobi":
-        # tu código original de Gurobi aquí
-        ...
-
-    elif _SOLVER == "pulp":
-        # código PuLP aquí
-        ...
-
-
-    # =====================
-    # PREPARAR DATOS
-    # =====================
+elif st.button("🚀 Ejecutar Optimización"):
 
     df_scorecard["Score"] = (
-
         df_scorecard["OTIF_Pct"] * 0.4 +
-
         df_scorecard["FillRate_Pct"] * 0.3 -
-
         df_scorecard["LeadTime_Prom_Dias"] * 0.3
     )
 
-    # Normalizar score
-    scores = (
-        df_scorecard
-        .set_index("Proveedor")["Score"]
-        .to_dict()
-    )
-
+    scores = df_scorecard.set_index("Proveedor")["Score"].to_dict()
     proveedores = list(scores.keys())
 
-    # =====================
-    # MODELO
-    # =====================
+    if _SOLVER == "gurobi":
+        model = Model("Optimizacion_Proveedor")
+        x = model.addVars(proveedores, lb=0, ub=0.4, vtype=GRB.CONTINUOUS, name="Asignacion")
+        model.addConstr(sum(x[p] for p in proveedores) == 1, name="Total_Compra")
+        model.setObjective(sum(scores[p] * x[p] for p in proveedores), GRB.MAXIMIZE)
+        model.optimize()
+        optimo = model.status == GRB.OPTIMAL
+        resultado_fn = lambda p: x[p].X
 
-    model = Model("Optimizacion_Proveedor")
+    elif _SOLVER == "pulp":
+        model = LpProblem("Optimizacion_Proveedor", LpMaximize)
+        x = {p: LpVariable(f"x_{p}", lowBound=0, upBound=0.4) for p in proveedores}
+        model += lpSum(scores[p] * x[p] for p in proveedores)
+        model += lpSum(x[p] for p in proveedores) == 1
+        model.solve()
+        optimo = LpStatus[model.status] == "Optimal"
+        resultado_fn = lambda p: value(x[p])
 
-    # Variables decisión
-    x = model.addVars(
-
-        proveedores,
-
-        lb=0,
-
-        ub=1,
-
-        vtype=GRB.CONTINUOUS,
-
-        name="Asignacion"
-    )
-
-    # =====================
-    # RESTRICCIÓN
-    # =====================
-
-    model.addConstr(
-
-        sum(x[p] for p in proveedores) == 1,
-
-        name="Total_Compra"
-    )
-
-    # Máximo 40% proveedor
-    for p in proveedores:
-
-        model.addConstr(
-
-            x[p] <= 0.4,
-
-            name=f"Limite_{p}"
-        )
-
-    # =====================
-    # FUNCIÓN OBJETIVO
-    # =====================
-
-    model.setObjective(
-
-        sum(
-            scores[p] * x[p]
+    if optimo:
+        resultados = [
+            {"Proveedor": p, "Asignacion_Optima_%": round(resultado_fn(p) * 100, 1)}
             for p in proveedores
-        ),
-
-        GRB.MAXIMIZE
-    )
-
-    # =====================
-    # OPTIMIZAR
-    # =====================
-
-    model.optimize()
-
-    # =====================
-    # RESULTADOS
-    # =====================
-
-    resultados = []
-
-    if model.status == GRB.OPTIMAL:
-
-        for p in proveedores:
-
-            resultados.append({
-
-                "Proveedor": p,
-
-                "Asignacion_Optima_%":
-                round(x[p].X * 100, 1)
-            })
-
-        df_resultado = pd.DataFrame(
-            resultados
-        )
-
-        # Filtrar solo > 0
-        df_resultado = df_resultado[
-            df_resultado[
-                "Asignacion_Optima_%"
-            ] > 0
         ]
-
-        st.success(
-            "✅ Optimización completada"
-        )
-
-        st.subheader(
-            "📊 Resultado Optimización"
-        )
-
-        st.dataframe(
-            df_resultado,
-            use_container_width=True
-        )
-
+        df_resultado = pd.DataFrame(resultados)
+        df_resultado = df_resultado[df_resultado["Asignacion_Optima_%"] > 0]
+        st.success("✅ Optimización completada")
+        st.subheader("📊 Resultado Optimización")
+        st.dataframe(df_resultado, use_container_width=True)
     else:
-
-        st.error(
-            "❌ No se encontró solución óptima"
-        )
-        
+        st.error("❌ No se encontró solución óptima")
