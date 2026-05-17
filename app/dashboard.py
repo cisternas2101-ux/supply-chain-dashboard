@@ -70,11 +70,10 @@ df_leadtime = load_query(
 df_fillrate = load_query(
     "sql/fill_rate.sql"
 )
-# Convertir todas las columnas numéricas automáticamente
-df_otif = df_otif.apply(pd.to_numeric, errors="ignore")
-df_scorecard = df_scorecard.apply(pd.to_numeric, errors="ignore")
-df_leadtime = df_leadtime.apply(pd.to_numeric, errors="ignore")
-df_fillrate = df_fillrate.apply(pd.to_numeric, errors="ignore")
+# Convertir columnas numéricas
+for df in [df_otif, df_scorecard, df_leadtime, df_fillrate]:
+    for col in df.select_dtypes(exclude="number").columns:
+        df[col] = pd.to_numeric(df[col], errors="coerce")
 
 # ==============================
 # 5. FILTRO PROVEEDOR
