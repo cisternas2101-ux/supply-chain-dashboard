@@ -1,3 +1,13 @@
+import sys, os
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../..')))
+
+# luego tus imports normales
+import plotly.express as px
+from utils.loader import load_query
+
+# =========================
+
+
 import streamlit as st
 import plotly.express as px
 import plotly.graph_objects as go
