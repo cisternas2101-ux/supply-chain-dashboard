@@ -8,6 +8,7 @@ from utils.loader import load_query
 # =========================
 
 import streamlit as st
+import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
 
@@ -95,6 +96,10 @@ pendientes = df_semana[
     "Pendientes"
 ].sum()
 
+df_scorecard["OTIF_Pct"] = pd.to_numeric(df_scorecard["OTIF_Pct"], errors="coerce")
+df_scorecard["FillRate_Pct"] = pd.to_numeric(df_scorecard["FillRate_Pct"], errors="coerce")
+df_scorecard["LeadTime_Prom_Dias"] = pd.to_numeric(df_scorecard["LeadTime_Prom_Dias"], errors="coerce")
+df_semana["Pendientes"] = pd.to_numeric(df_semana["Pendientes"], errors="coerce")
 # =========================
 # KPIs
 # =========================
