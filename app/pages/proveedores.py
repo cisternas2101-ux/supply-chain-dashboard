@@ -1,14 +1,11 @@
 import sys, os
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../..')))
 
-# luego tus imports normales
-import plotly.express as px
-from utils.loader import load_query
-
 # =========================
 
 
 import streamlit as st
+import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
 
@@ -68,6 +65,11 @@ df_fill = load_query(
 df_lead = load_query(
     "sql/leadtime.sql"
 )
+# Convertir columnas numéricas
+df_otif["OTIF_Pct"] = pd.to_numeric(df_otif["OTIF_Pct"], errors="coerce")
+df_fill["Fill_Rate_Pct"] = pd.to_numeric(df_fill["Fill_Rate_Pct"], errors="coerce")
+df_lead["LeadTime_Promedio"] = pd.to_numeric(df_lead["LeadTime_Promedio"], errors="coerce")
+df_scorecard["Total_OC"] = pd.to_numeric(df_scorecard["Total_OC"], errors="coerce")
 
 # =========================
 # FILTRO
