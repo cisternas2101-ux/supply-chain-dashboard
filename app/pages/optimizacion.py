@@ -6,7 +6,21 @@ import plotly.express as px
 from utils.loader import load_query
 
 # =========================
+# Intenta Gurobi primero (local)
+try:
+    from gurobipy import Model, GRB
+    _SOLVER = "gurobi"
+except ImportError:
+    pass
 
+# Si no hay Gurobi, usa PuLP (nube)
+try:
+    from pulp import LpMaximize, LpProblem, LpVariable, lpSum, value, LpStatus
+    _SOLVER = "pulp"
+except ImportError:
+    _SOLVER = None
+
+#====================
 
 import streamlit as st
 import pandas as pd
@@ -63,11 +77,19 @@ st.dataframe(
 # =========================
 # BOTÓN OPTIMIZAR
 # =========================
+if st.button("🚀 Ejecutar Optimización"):
 
-if not _HAS_GUROBI:
-    st.warning("Gurobi no disponible en este entorno (deploy CSV).")
+    if _SOLVER is None:
+        st.error("❌ No hay solver disponible")
 
-if _HAS_GUROBI and st.button("🚀 Ejecutar Optimización"):
+    elif _SOLVER == "gurobi":
+        # tu código original de Gurobi aquí
+        ...
+
+    elif _SOLVER == "pulp":
+        # código PuLP aquí
+        ...
+
 
     # =====================
     # PREPARAR DATOS
