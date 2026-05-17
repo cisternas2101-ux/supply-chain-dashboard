@@ -199,5 +199,160 @@ with tab3:
 with tab4:
     st.dataframe(df_scorecard, use_container_width=True)
 
+# =========================
+# REPORTE PDF
+# =========================
+from reportlab.lib.pagesizes import letter
+from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle
+from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+from reportlab.lib import colors
+from reportlab.lib.units import inch
+from datetime import datetime
+import io
 
+if st.button("📄 Generar Reporte PDF"):
+
+    buffer = io.BytesIO()
+    doc = SimpleDocTemplate(buffer, pagesize=letter,
+                            rightMargin=inch, leftMargin=inch,
+                            topMargin=inch, bottomMargin=inch)
+    styles = getSampleStyleSheet()
+    story = []
+
+    # Estilos
+    titulo = ParagraphStyle("titulo", parent=styles["Title"],
+                            fontSize=18, textColor=colors.HexColor("#1f3864"))
+    seccion = ParagraphStyle("seccion", parent=styles["Heading2"],
+                             fontSize=13, textColor=colors.HexColor("#2e75b6"),
+                             spaceAfter=6)
+    normal = styles["Normal"]
+
+    # Función semáforo
+    def semaforo(valor, objetivo=90):
+        if valor >= objetivo:
+            return "🟢 Bueno"
+        elif valor >= objetivo * 0.8:
+            return "🟡 En riesgo"
+        else:
+            return "🔴 Crítico"
+
+    # Función recomendación
+    def recomendacion_otif(valor):
+        if valor < 80:
+            return "🚨 OTIF crítico. Se recomienda revisar urgentemente los acuerdos con proveedores y evaluar proveedores alternativos."
+        elif valor < 90:
+            return "⚠️ OTIF bajo objetivo. Se recomienda establecer planes de mejora con proveedores críticos y monitorear semanalmente."
+        return "✅ OTIF dentro del objetivo. Mantener condiciones actuales y monitorear."
+
+    def recomendacion_lead(valor):
+        if valor > 15:
+            return "⚠️ LeadTime elevado. Se recomienda negociar tiempos de entrega y revisar la planificación de compras."
+        return "✅ LeadTime dentro del rango aceptable."
+
+    def recomendacion_fill(valor):
+        if valor < 90:
+            return "⚠️ Fill Rate bajo. Se recomienda aumentar el stock de seguridad y revisar la disponibilidad de productos."
+        return "✅ Fill Rate dentro del objetivo."
+
+    # ── ENCABEZADO ──
+    story.append(Paragraph("Reporte de Desempeño de Proveedores", titulo))
+    story.append(Paragraph(f"Fecha: {datetime.now().strftime('%d/%m/%Y')}", normal))
+    story.append(Spacer(1, 0.3 * inch))
+
+    # ── PREGUNTA 1 ──
+    story.append(Paragraph("1. ¿Cómo está el desempeño global de la cadena de suministro?", seccion))
+    data_kpi = [
+        ["KPI", "Resultado", "Objetivo", "Estado"],
+        ["OTIF", f"{otif_global:.1f}%", "90%", semaforo(otif_global)],
+        ["Fill Rate", f"{fill_global:.1f}%", "90%", semaforo(fill_global)],
+        ["LeadTime Promedio", f"{lead_global:.1f} días", "< 15 días", semaforo(lead_global, 85)],
+        ["Órdenes Pendientes", f"{pendientes:,.0f}", "-", "-"],
+    ]
+    tabla_kpi = Table(data_kpi, colWidths=[2.2*inch, 1.3*inch, 1.2*inch, 1.5*inch])
+    tabla_kpi.setStyle(TableStyle([
+        ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#1f3864")),
+        ("TEXTCOLOR", (0, 0), (-1, 0), colors.white),
+        ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
+        ("ALIGN", (0, 0), (-1, -1), "CENTER"),
+        ("ROWBACKGROUNDS", (0, 1), (-1, -1), [colors.HexColor("#f2f7ff"), colors.white]),
+        ("GRID", (0, 0), (-1, -1), 0.5, colors.grey),
+        ("FONTSIZE", (0, 0), (-1, -1), 10),
+    ]))
+    story.append(tabla_kpi)
+    story.append(Spacer(1, 0.2 * inch))
+
+    # ── PREGUNTA 2 ──
+    story.append(Paragraph("2. ¿Qué proveedores están bajo el objetivo?", seccion))
+    criticos = df_scorecard[df_scorecard["OTIF_Pct"] < 90].sort_values("OTIF_Pct")
+    if criticos.empty:
+        story.append(Paragraph("✅ Todos los proveedores están sobre el objetivo de 90%.", normal))
+    else:
+        data_crit = [["Proveedor", "OTIF%", "Fill Rate%", "LeadTime (días)"]]
+        for _, row in criticos.iterrows():
+            data_crit.append([
+                str(row["Proveedor"]),
+                f"{row['OTIF_Pct']:.1f}%",
+                f"{row['FillRate_Pct']:.1f}%",
+                f"{row['LeadTime_Prom_Dias']:.1f}"
+            ])
+        tabla_crit = Table(data_crit, colWidths=[2.5*inch, 1.2*inch, 1.3*inch, 1.2*inch])
+        tabla_crit.setStyle(TableStyle([
+            ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#c00000")),
+            ("TEXTCOLOR", (0, 0), (-1, 0), colors.white),
+            ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
+            ("ALIGN", (0, 0), (-1, -1), "CENTER"),
+            ("ROWBACKGROUNDS", (0, 1), (-1, -1), [colors.HexColor("#fff0f0"), colors.white]),
+            ("GRID", (0, 0), (-1, -1), 0.5, colors.grey),
+            ("FONTSIZE", (0, 0), (-1, -1), 10),
+        ]))
+        story.append(tabla_crit)
+    story.append(Spacer(1, 0.2 * inch))
+
+    # ── PREGUNTA 3 ──
+    story.append(Paragraph("3. ¿Cuál es el proveedor con mejor desempeño?", seccion))
+    top3 = df_scorecard.sort_values("OTIF_Pct", ascending=False).head(3)
+    data_top = [["#", "Proveedor", "OTIF%", "Fill Rate%"]]
+    for i, (_, row) in enumerate(top3.iterrows(), 1):
+        data_top.append([
+            f"#{i}",
+            str(row["Proveedor"]),
+            f"{row['OTIF_Pct']:.1f}%",
+            f"{row['FillRate_Pct']:.1f}%"
+        ])
+    tabla_top = Table(data_top, colWidths=[0.5*inch, 2.5*inch, 1.2*inch, 1.3*inch])
+    tabla_top.setStyle(TableStyle([
+        ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#1e7b34")),
+        ("TEXTCOLOR", (0, 0), (-1, 0), colors.white),
+        ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
+        ("ALIGN", (0, 0), (-1, -1), "CENTER"),
+        ("ROWBACKGROUNDS", (0, 1), (-1, -1), [colors.HexColor("#f0fff4"), colors.white]),
+        ("GRID", (0, 0), (-1, -1), 0.5, colors.grey),
+        ("FONTSIZE", (0, 0), (-1, -1), 10),
+    ]))
+    story.append(tabla_top)
+    story.append(Spacer(1, 0.2 * inch))
+
+    # ── PREGUNTA 4 ──
+    story.append(Paragraph("4. ¿Cuántas órdenes están pendientes?", seccion))
+    story.append(Paragraph(f"Total de órdenes pendientes: {pendientes:,.0f}", normal))
+    story.append(Spacer(1, 0.2 * inch))
+
+    # ── RECOMENDACIONES ──
+    story.append(Paragraph("5. Recomendaciones", seccion))
+    story.append(Paragraph(recomendacion_otif(otif_global), normal))
+    story.append(Spacer(1, 0.1 * inch))
+    story.append(Paragraph(recomendacion_lead(lead_global), normal))
+    story.append(Spacer(1, 0.1 * inch))
+    story.append(Paragraph(recomendacion_fill(fill_global), normal))
+
+    # ── GENERAR PDF ──
+    doc.build(story)
+    buffer.seek(0)
+
+    st.download_button(
+        label="⬇️ Descargar Reporte PDF",
+        data=buffer,
+        file_name=f"reporte_supply_chain_{datetime.now().strftime('%Y%m%d')}.pdf",
+        mime="application/pdf"
+    )
 
