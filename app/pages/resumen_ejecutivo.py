@@ -11,7 +11,6 @@ import streamlit as st
 import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
-
 from utils.loader import load_query
 from reportlab.lib.pagesizes import letter
 from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle
@@ -85,20 +84,11 @@ with st.sidebar:
         "Proveedor",
         options=["TODOS"] + list(df_scorecard["Proveedor"].unique())
     )
- #Reporte========   
-st.divider()  # ← agregar
-if st.button("📄 Generar Reporte PDF"):
-
-    buffer = io.BytesIO()
-    doc = SimpleDocTemplate(buffer, pagesize=letter,
-                            rightMargin=inch, leftMargin=inch,
-                            topMargin=inch, bottomMargin=inch)
-    styles = getSampleStyleSheet()
-    story = []
 
 if proveedor != "TODOS":
     df_scorecard = df_scorecard[df_scorecard["Proveedor"] == proveedor]
     df_otif = df_otif[df_otif["Proveedor"] == proveedor]
+
 
 # =========================
 # KPIs GENERALES
@@ -219,11 +209,20 @@ with tab4:
 # =========================
 # REPORTE PDF
 # =========================
+ #Reporte========   
+st.divider()  # ← agregar
+if st.button("📄 Generar Reporte PDF"):
 
+    buffer = io.BytesIO()
+    doc = SimpleDocTemplate(buffer, pagesize=letter,
+                            rightMargin=inch, leftMargin=inch,
+                            topMargin=inch, bottomMargin=inch)
+    styles = getSampleStyleSheet()
+    story = []
 
     # Estilos
-    titulo = ParagraphStyle("titulo", parent=styles["Title"],
-                            fontSize=18, textColor=colors.HexColor("#1f3864"))
+    titulo = ParagraphStyle("titulo", parent=styles["Heading1"],
+                        fontSize=18, textColor=colors.HexColor("#1f3864"))
     seccion = ParagraphStyle("seccion", parent=styles["Heading2"],
                              fontSize=13, textColor=colors.HexColor("#2e75b6"),
                              spaceAfter=6)
@@ -232,29 +231,29 @@ with tab4:
     # Función semáforo
     def semaforo(valor, objetivo=90):
         if valor >= objetivo:
-            return "🟢 Bueno"
+            return " Bueno"
         elif valor >= objetivo * 0.8:
-            return "🟡 En riesgo"
+            return " En riesgo"
         else:
-            return "🔴 Crítico"
+            return " Crítico"
 
     # Función recomendación
     def recomendacion_otif(valor):
         if valor < 80:
-            return "🚨 OTIF crítico. Se recomienda revisar urgentemente los acuerdos con proveedores y evaluar proveedores alternativos."
+            return " OTIF crítico. Se recomienda revisar urgentemente los acuerdos con proveedores y evaluar proveedores alternativos."
         elif valor < 90:
-            return "⚠️ OTIF bajo objetivo. Se recomienda establecer planes de mejora con proveedores críticos y monitorear semanalmente."
-        return "✅ OTIF dentro del objetivo. Mantener condiciones actuales y monitorear."
+            return " OTIF bajo objetivo. Se recomienda establecer planes de mejora con proveedores críticos y monitorear semanalmente."
+        return " OTIF dentro del objetivo. Mantener condiciones actuales y monitorear."
 
     def recomendacion_lead(valor):
         if valor > 15:
-            return "⚠️ LeadTime elevado. Se recomienda negociar tiempos de entrega y revisar la planificación de compras."
-        return "✅ LeadTime dentro del rango aceptable."
+            return " LeadTime elevado. Se recomienda negociar tiempos de entrega y revisar la planificación de compras."
+        return " LeadTime dentro del rango aceptable."
 
     def recomendacion_fill(valor):
         if valor < 90:
-            return "⚠️ Fill Rate bajo. Se recomienda aumentar el stock de seguridad y revisar la disponibilidad de productos."
-        return "✅ Fill Rate dentro del objetivo."
+            return " Fill Rate bajo. Se recomienda aumentar el stock de seguridad y revisar la disponibilidad de productos."
+        return " Fill Rate dentro del objetivo."
 
     # ── ENCABEZADO ──
     story.append(Paragraph("Reporte de Desempeño de Proveedores", titulo))
