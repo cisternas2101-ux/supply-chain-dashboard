@@ -13,6 +13,13 @@ import plotly.express as px
 import plotly.graph_objects as go
 
 from utils.loader import load_query
+from reportlab.lib.pagesizes import letter
+from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle
+from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+from reportlab.lib import colors
+from reportlab.lib.units import inch
+from datetime import datetime
+import io
 
 
 def gauge(value, title, max_val=100, suffix="%", ref=90):
@@ -202,14 +209,6 @@ with tab4:
 # =========================
 # REPORTE PDF
 # =========================
-from reportlab.lib.pagesizes import letter
-from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle
-from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
-from reportlab.lib import colors
-from reportlab.lib.units import inch
-from datetime import datetime
-import io
-
 if st.button("📄 Generar Reporte PDF"):
 
     buffer = io.BytesIO()
