@@ -293,7 +293,7 @@ if st.button("📄 Generar Reporte PDF"):
             data_crit.append([
                 str(row["Proveedor"]),
                 f"{row['OTIF_Pct']:.1f}%",
-                f"{row['FillRate_Pct']:.1f}%",
+                f"{row['FillRate_Pct']:.1f}%" if pd.notna(row['FillRate_Pct']) else "Sin dato",
                 f"{row['LeadTime_Prom_Dias']:.1f}"
             ])
         tabla_crit = Table(data_crit, colWidths=[2.5*inch, 1.2*inch, 1.3*inch, 1.2*inch])
@@ -337,6 +337,50 @@ if st.button("📄 Generar Reporte PDF"):
     story.append(Paragraph("4. ¿Cuántas órdenes están pendientes?", seccion))
     story.append(Paragraph(f"Total de órdenes pendientes: {pendientes:,.0f}", normal))
     story.append(Spacer(1, 0.2 * inch))
+
+    # ── CARGAR DATOS RETRASOS ──
+    df_motivo = load_query("sql/motivo_retraso.sql")
+    df_motivo["Frecuencia"] = pd.to_numeric(df_motivo["Frecuencia"], errors="coerce")
+    df_motivo["Porcentaje"] = pd.to_numeric(df_motivo["Porcentaje"], errors="coerce")
+
+    # ── PREGUNTA 5: OPTIMIZACIÓN ──
+    story.append(Paragraph("5. ¿Cómo distribuir las compras entre proveedores?", seccion))
+    story.append(Paragraph(
+        "El modelo de optimizacion calcula el porcentaje optimo de compras por proveedor "
+        "maximizando OTIF y Fill Rate, minimizando LeadTime, con un maximo de 40% por proveedor.",
+        normal
+    ))
+    top1 = df_scorecard.sort_values("OTIF_Pct", ascending=False).iloc[0]
+    story.append(Spacer(1, 0.1 * inch))
+    story.append(Paragraph(
+        f"Proveedor recomendado: {top1['Proveedor']} con OTIF de {top1['OTIF_Pct']:.1f}%.",
+        normal
+    ))
+    story.append(Spacer(1, 0.2 * inch))
+
+    # ── PREGUNTA 6: RETRASOS ──
+    story.append(Paragraph("6. ¿Cuales son los principales motivos de retraso?", seccion))
+    top_motivos = df_motivo.dropna().head(5)
+    data_mot = [["Motivo", "Frecuencia", "Porcentaje"]]
+    for _, row in top_motivos.iterrows():
+        data_mot.append([
+            str(row["Motivo"]),
+            f"{int(row['Frecuencia'])}",
+            f"{row['Porcentaje']:.1f}%"
+        ])
+    tabla_mot = Table(data_mot, colWidths=[3.5*inch, 1.2*inch, 1.2*inch])
+    tabla_mot.setStyle(TableStyle([
+        ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#7b2d00")),
+        ("TEXTCOLOR", (0, 0), (-1, 0), colors.white),
+        ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
+        ("ALIGN", (0, 0), (-1, -1), "CENTER"),
+        ("ROWBACKGROUNDS", (0, 1), (-1, -1), [colors.HexColor("#fff5f0"), colors.white]),
+        ("GRID", (0, 0), (-1, -1), 0.5, colors.grey),
+        ("FONTSIZE", (0, 0), (-1, -1), 10),
+    ]))
+    story.append(tabla_mot)
+    story.append(Spacer(1, 0.2 * inch))
+
 
     # ── RECOMENDACIONES ──
     story.append(Paragraph("5. Recomendaciones", seccion))
