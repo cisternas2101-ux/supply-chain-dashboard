@@ -85,6 +85,16 @@ with st.sidebar:
         "Proveedor",
         options=["TODOS"] + list(df_scorecard["Proveedor"].unique())
     )
+ #Reporte========   
+st.divider()  # ← agregar
+if st.button("📄 Generar Reporte PDF"):
+
+    buffer = io.BytesIO()
+    doc = SimpleDocTemplate(buffer, pagesize=letter,
+                            rightMargin=inch, leftMargin=inch,
+                            topMargin=inch, bottomMargin=inch)
+    styles = getSampleStyleSheet()
+    story = []
 
 if proveedor != "TODOS":
     df_scorecard = df_scorecard[df_scorecard["Proveedor"] == proveedor]
@@ -209,14 +219,7 @@ with tab4:
 # =========================
 # REPORTE PDF
 # =========================
-if st.button("📄 Generar Reporte PDF"):
 
-    buffer = io.BytesIO()
-    doc = SimpleDocTemplate(buffer, pagesize=letter,
-                            rightMargin=inch, leftMargin=inch,
-                            topMargin=inch, bottomMargin=inch)
-    styles = getSampleStyleSheet()
-    story = []
 
     # Estilos
     titulo = ParagraphStyle("titulo", parent=styles["Title"],
