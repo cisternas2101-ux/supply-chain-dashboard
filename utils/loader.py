@@ -16,7 +16,7 @@ def load_query(path):
     # =====================
 
     en_nube = (
-        "STREAMLIT_SERVER_PORT"
+        "STREAMLIT_CLOUD"
         in os.environ
     )
 
