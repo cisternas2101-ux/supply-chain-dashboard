@@ -99,7 +99,7 @@ with col1:
     st.container(border=True)
     st.metric(
     
-        "N° de Pedidos",
+        "Pedidos%",
         f"{total_pedidos:,.1f}"
     )
 
