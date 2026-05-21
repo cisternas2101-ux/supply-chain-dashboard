@@ -1,6 +1,7 @@
 ﻿Total_Pedidos;A_Tiempo;Con_Retraso;Ontime_Pct
 112;86;26;76.790000000000
 
+
 Proveedor;OC;Descripción;Fecha_Prometida;Fecha_real;Dias_Retraso
 "GELYMAR ";16740;CARRALACT DSC 10160;2026-03-31;2026-04-09;9
 "GELYMAR ";17349;CARRALACT DSC 3592;2026-03-31;2026-04-09;9
