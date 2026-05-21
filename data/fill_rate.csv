@@ -1,6 +1,5 @@
 ﻿Fill_Rate_Global
-98,73
-
+98.73
 
 Proveedor;Descripción;Cantidad_Solicitada;Cantidad_Llegada;Fill_Rate_Pct;Estado_Entrega
 BLUMOS;INULINA;1000;10;1;Parcial
