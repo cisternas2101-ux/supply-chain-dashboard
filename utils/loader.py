@@ -1,27 +1,65 @@
 import pandas as pd
 import os
 import streamlit as st
+
 from utils.connection import get_connection
+
+# =========================
+# LOAD QUERY
+# =========================
 
 @st.cache_data
 def load_query(path):
-    
-    # Detecta si está en Streamlit Cloud
-    en_nube = os.getenv("STREAMLIT_CLOUD") is not None
+
+    # =====================
+    # STREAMLIT CLOUD
+    # =====================
+
+    en_nube = (
+        "STREAMLIT_SERVER_PORT"
+        in os.environ
+    )
+
+    # =====================
+    # CSV MODE
+    # =====================
 
     if en_nube:
-        nombre_archivo = os.path.splitext(os.path.basename(path))[0]
-        csv_path = os.path.join("data", f"{nombre_archivo}.csv")
+
+        nombre_archivo = os.path.splitext(
+            os.path.basename(path)
+        )[0]
+
+        csv_path = os.path.join(
+            "data",
+            f"{nombre_archivo}.csv"
+        )
+
         return pd.read_csv(
-        csv_path,
-        sep=";",              # ← separador correcto
-        encoding="utf-8-sig"  # ← elimina el BOM automáticamente
+            csv_path,
+            sep=";",
+            encoding="utf-8-sig"
+        )
+
+    # =====================
+    # SQL SERVER LOCAL
+    # =====================
+
+    conn = get_connection()
+
+    with open(
+        path,
+        "r",
+        encoding="latin-1"
+    ) as file:
+
+        query = file.read()
+
+    df = pd.read_sql(
+        query,
+        conn
     )
-    
-    else:
-        # Comportamiento local original, no cambia nada
-        conn = get_connection()
-        with open(path, "r", encoding="latin-1") as file:
-            query = file.read()
-        df = pd.read_sql(query, conn)
-        return df
+
+    conn.close()
+
+    return df
