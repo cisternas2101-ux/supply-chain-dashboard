@@ -4,24 +4,17 @@ import streamlit as st
 
 from utils.connection import get_connection
 
-# =========================
-# LOAD QUERY
-# =========================
-
 @st.cache_data
 def load_query(path):
 
     # =====================
-    # STREAMLIT CLOUD
+    # DETECTAR STREAMLIT CLOUD
     # =====================
 
-    en_nube = (
-        "STREAMLIT_CLOUD"
-        in os.environ
-    )
+    en_nube = os.path.exists("/mount/src")
 
     # =====================
-    # CSV MODE
+    # CSV CLOUD
     # =====================
 
     if en_nube:
@@ -37,12 +30,13 @@ def load_query(path):
 
         return pd.read_csv(
             csv_path,
-            sep=";",
+            sep=None,
+            engine="python",
             encoding="utf-8-sig"
         )
 
     # =====================
-    # SQL SERVER LOCAL
+    # SQL LOCAL
     # =====================
 
     conn = get_connection()
