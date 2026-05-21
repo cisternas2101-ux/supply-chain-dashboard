@@ -1,7 +1,4 @@
-﻿Fill_Rate_Global
-98.73
-
-Proveedor;Descripción;Cantidad_Solicitada;Cantidad_Llegada;Fill_Rate_Pct;Estado_Entrega
+﻿Proveedor;Descripción;Cantidad_Solicitada;Cantidad_Llegada;Fill_Rate_Pct;Estado_Entrega
 BLUMOS;INULINA;1000;10;1;Parcial
 "GELYMAR ";CARRALACT DSC 10160;150;100;66.67;Parcial
 "MERCOQUIM ";ALMIDON PRE-GELATINIZADO;50;45;90;Parcial
@@ -114,3 +111,7 @@ INDUPROMA;GEL LAC SF;50;50;100;Completo
 "COMERCIAL RIVAS ";LACTASA;40;40;100;Completo
 "OXIQUIM ";ACIDO CITRICO ANHIDRO;500;500;100;Completo
 "GELYMAR ";CARRALACT DSC 10160;100;100;100;Completo
+
+Fill_Rate_Global
+98.73
+
