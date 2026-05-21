@@ -57,6 +57,22 @@ with st.sidebar:
 if proveedor != "TODOS":
     df = df[df["Proveedor"] == proveedor]
 
+df["Cantidad_Solicitada"] = pd.to_numeric(
+    df["Cantidad_Solicitada"],
+    errors="coerce"
+)
+
+df["Cantidad_llegada"] = pd.to_numeric(
+    df["Cantidad_llegada"],
+    errors="coerce"
+)
+
+df_semana["Pendientes"] = pd.to_numeric(
+    df_semana["Pendientes"],
+    errors="coerce"
+)
+
+
 # =========================
 # FILTRO FECHAS
 # =========================
@@ -106,7 +122,7 @@ with col1:
 with col2:
     st.container(border=True)
     st.metric(
-        "Kg Solicitados%",
+        "Kg Solicitados",
         f"{kg_solicitados:,.1f}"
     )
 
