@@ -30,9 +30,13 @@ def load_query(path):
 
         return pd.read_csv(
             csv_path,
-            sep=None,
-            engine="python",
-            encoding="utf-8-sig"
+            sep=",",
+            encoding="utf-8-sig",
+            na_values=["NULL", "null", ""],
+            keep_default_na=True,
+            on_bad_lines="warn",
+            quoting=3,
+            escapechar="\\",
         )
 
     # =====================
