@@ -1,8 +1,10 @@
 import pandas as pd
 import os
+import io
 import streamlit as st
 
 from utils.connection import get_connection
+
 
 @st.cache_data
 def load_query(path):
@@ -28,16 +30,23 @@ def load_query(path):
             f"{nombre_archivo}.csv"
         )
 
-        return pd.read_csv(
-            csv_path,
+        with open(csv_path, "r", encoding="utf-8-sig", errors="replace") as f:
+            contenido = f.read()
+
+        df = pd.read_csv(
+            io.StringIO(contenido),
             sep=";",
-            encoding="utf-8-sig",
-            na_values=["NULL", "null", ""],
-            keep_default_na=True,
-            on_bad_lines="warn",
             quoting=3,
             escapechar="\\",
+            na_values=["NULL", "null", ""],
+            keep_default_na=True,
+            on_bad_lines="skip",
         )
+
+        # Limpiar espacios en nombres de columnas
+        df.columns = df.columns.str.strip()
+
+        return df
 
     # =====================
     # SQL LOCAL
