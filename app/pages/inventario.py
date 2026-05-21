@@ -106,7 +106,7 @@ with col1:
 with col2:
     st.container(border=True)
     st.metric(
-        "Kg Solicitados",
+        "Kg Solicitados%",
         f"{kg_solicitados:,.1f}"
     )
 
