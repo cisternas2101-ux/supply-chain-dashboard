@@ -142,6 +142,9 @@ fillrate = df_fillrate_filtrado[
     "Fill_Rate_Pct"
 ].mean()
 
+
+
+
 # ==============================
 # 8. KPIs
 # ==============================
